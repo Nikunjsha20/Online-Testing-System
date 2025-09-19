@@ -5,8 +5,8 @@ from OTS.models import *
 import random
 
 def welcome(request):
-    template = loader.get_template('welcome.html')
-    return HttpResponse(template.render())
+    res = render(request, 'welcome.html')
+    return res
 
 def candidateRegistrationForm(request):
     res = render(request, 'registraation_Form.html')
@@ -91,7 +91,9 @@ def calculateTestResult(request):
             total_attempt += 1
         except:
             pass
-    points = (total_right-total_wrong)/len(qid_list)*10
+    # points = (total_right-total_wrong)/len(qid_list)*10
+    points = (total_right*2)-((total_wrong*2)/3)
+    points = round(points,2)
 
     #Store result in Result table
     result = Result()
@@ -105,7 +107,7 @@ def calculateTestResult(request):
     #update candidate table
     candidate = Candidate.objects.get(username = request.session['username'])
     candidate.test_attempted += 1
-    candidate.points = (candidate.points*(candidate.test_attempted-1)+points)/candidate.test_attempted
+    candidate.points = candidate.points + round((points-candidate.points)/candidate.test_attempted,2)
     candidate.save()
 
     return HttpResponseRedirect('result')   
@@ -130,10 +132,17 @@ def showTestResult(request):
     return res
 
 def logoutView(request):
-    if 'name' in request.session.keys():
-        del request.session['username']
-        del request.session['name']
-    
-    return HttpResponseRedirect('login')
+    del request.session['username']
+    del request.session['name']
+    return HttpResponseRedirect('/login')
+
+
+    # if 'name' in request.session.keys():
+    #     request.session.flush() 
+    #     del request.session['username']
+    #     del request.session['name']
+    # res = HttpResponseRedirect('/login/')
+    # return res
+    # return redirect('login')
 
 # Create your views here.
